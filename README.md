@@ -62,9 +62,89 @@ llm = SagemakerEndpoint(
 )
 ```
 
-#### Conversation
+## Conversation
 
-대화(Conversation)을 위해서는 Chat History를 이용한 Prompt Engineering이 필요합니다. 여기서는 Chat History를 위한 chat_memory와 RAG에서 document를 retrieval을 하기 위한 memory를 이용합니다.
+### ConversationChain을 이용
+
+[ConversationBufferMemory](https://python.langchain.com/docs/modules/memory/types/buffer)을 이용하여 대화 이력(chat history)를 저장하고, [ConversationChain](https://api.python.langchain.com/en/latest/chains/langchain.chains.conversation.base.ConversationChain.html)
+을 이용하여 history를 관리합니다.
+
+```python
+from langchain.chains import ConversationChain
+from langchain.memory import ConversationBufferMemory
+memory = ConversationBufferMemory()
+conversation = ConversationChain(
+    llm=llm, verbose=True, memory=memory
+)
+```
+
+아후 아래처럼 input인 text에 대해 대화(conversation)을 chat history를 포함하여 구현할 수 있습니다.
+
+```python
+msg = conversation.predict(input=text)
+```
+
+### Template을 이용하는 방법
+
+[ConversationBufferMemory](https://python.langchain.com/docs/modules/memory/types/buffer)을 이용하여 대화 이력(chat history)를 저장합니다.
+
+```python
+from langchain.memory import ConversationBufferMemory
+chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
+```
+
+memory에서 chat history를 분리합니다. 이때, prompt의 context 크기를 고려하여 history를 chunk로 나누어서 가장 최신의 2개 chunk를 prompt로 활용합니다.
+
+```python
+def get_answer_using_chat_history(query, chat_memory):  
+    condense_template = """Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    
+    {chat_history}
+    
+    Human: {question}
+    AI:"""
+    CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(condense_template)
+        
+    # extract chat history
+    chats = chat_memory.load_memory_variables({})
+    chat_history_all = chats['history']
+    print('chat_history_all: ', chat_history_all)
+
+    # use last two chunks of chat history
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000,chunk_overlap=0)
+    texts = text_splitter.split_text(chat_history_all) 
+
+    pages = len(texts)
+    print('pages: ', pages)
+
+    if pages >= 2:
+        chat_history = f"{texts[pages-2]} {texts[pages-1]}"
+    elif pages == 1:
+        chat_history = texts[0]
+    else:  # 0 page
+        chat_history = ""
+    print('chat_history:\n ', chat_history)
+
+    # make a question using chat history
+    if pages >= 1:
+        result = llm(CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history))
+    else:
+        result = llm(query)
+    print('result: ', result)
+
+    return result    
+```
+
+아래처럼 결과는 chat_memory에 저장하여 대화(conversation)에서 활용합니다.
+
+```python
+msg = get_answer_using_chat_history(text, chat_memory)
+chat_memory.save_context({"input": text}, {"output": msg})
+```
+
+#### RAG와 함께 대화하기
+
+[RAG with OpenSearch](https://github.com/kyopark2014/question-answering-chatbot-with-vector-store/blob/main/lambda-chat/lambda_function.py)와 같이 chat history를 위한 chat_memory와 RAG에서 document를 retrieval을 하기 위한 memory를 정의합니다.
 
 ```python
 # memory for conversation
@@ -75,7 +155,6 @@ memory = ConversationBufferMemory(memory_key="chat_history", return_messages=Tru
 ```
 
 Chat history를 위한 condense_template과 document retrieval시에 사용하는 prompt_template을 아래와 같이 정의하고, [ConversationalRetrievalChain](https://api.python.langchain.com/en/latest/chains/langchain.chains.conversational_retrieval.base.ConversationalRetrievalChain.html)을 이용하여 아래와 같이 구현합니다.
-
 
 ```python
 def get_answer_using_template_with_history(query, vectorstore, chat_memory):  
@@ -130,7 +209,14 @@ def get_answer_using_template_with_history(query, vectorstore, chat_memory):
         return result['answer']+reference
     else:
         return result['answer']
-```        
+```
+
+새로운 대화는 chat_memory에 저장되어 활용되어집니다.
+
+```python
+msg = get_answer_using_template_with_history(text, vectorstore, chat_memory)
+chat_memory.save_context({"input": text}, {"output": msg})
+```      
 
 
 ### AWS CDK로 인프라 구현하기
