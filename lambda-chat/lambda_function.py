@@ -23,6 +23,7 @@ from langchain.prompts import PromptTemplate
 from langchain.embeddings import SagemakerEndpointEmbeddings
 from langchain.chains import ConversationalRetrievalChain
 from langchain.memory import ConversationBufferMemory
+from langchain.chains import ConversationChain
 
 s3 = boto3.client('s3')
 s3_bucket = os.environ.get('s3_bucket') # bucket name
@@ -33,6 +34,8 @@ endpoint_embedding = os.environ.get('endpoint_embedding')
 
 enableConversationMode = os.environ.get('enableConversationMode', 'enabled')
 print('enableConversationMode: ', enableConversationMode)
+
+methodOfConversation = 'PromptTemplate' # ConversationChain or PromptTemplate
 
 class ContentHandler(LLMContentHandler):
     content_type = "application/json"
@@ -77,24 +80,17 @@ llm = SagemakerEndpoint(
     content_handler = content_handler
 )
 
-# memory for retrival docs
-#memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, #input_key="question", output_key='answer', human_prefix='Human', ai_prefix='AI')
-
-# memory for conversation
-#chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
-
 # Conversation
-from langchain.chains import ConversationChain
-from langchain.memory import ConversationBufferMemory
-#memory = ConversationBufferMemory()
-#conversation = ConversationChain(
-#    llm=llm, verbose=True, memory=memory
-#)
+if methodOfConversation == 'ConversationChain':
+    memory = ConversationBufferMemory()
+    conversation = ConversationChain(
+        llm=llm, verbose=True, memory=memory
+    )
+elif methodOfConversation == 'PromptTemplate':
+    # memory for conversation
+    chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
 
-# memory for conversation
-chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
-
-# embedding
+# Embedding
 from langchain.embeddings.sagemaker_endpoint import EmbeddingsContentHandler
 from typing import Dict, List
 class ContentHandler2(EmbeddingsContentHandler):
@@ -148,7 +144,7 @@ def load_document(file_type, s3_file_name):
     return texts
 
 def get_answer_using_chat_history(query, chat_memory):  
-    condense_template = """Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    condense_template = """Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor.
     
     {chat_history}
     
@@ -240,14 +236,13 @@ def lambda_handler(event, context):
             print(f"query size: {querySize}, words: {textCount}")
                 
             if enableConversationMode == 'true':
-                #msg = conversation.predict(input=text)
-
-                msg = get_answer_using_chat_history(text, chat_memory)
-
+                if methodOfConversation == 'ConversationChain':
+                    msg = conversation.predict(input=text)
+                elif methodOfConversation == 'PromptTemplate':
+                    msg = get_answer_using_chat_history(text, chat_memory)
+                    chat_memory.save_context({"input": text}, {"output": msg})            
             else:
                 msg = llm(text)
-            #print('msg: ', msg)
-            chat_memory.save_context({"input": text}, {"output": msg})
             
     elif type == 'document':
         object = body
