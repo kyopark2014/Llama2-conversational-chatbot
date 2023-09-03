@@ -91,6 +91,8 @@ conversation = ConversationChain(
     llm=llm, verbose=True, memory=memory
 )
 
+# memory for conversation
+chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
 
 # embedding
 from langchain.embeddings.sagemaker_endpoint import EmbeddingsContentHandler
@@ -145,6 +147,43 @@ def load_document(file_type, s3_file_name):
             
     return texts
 
+def get_answer_using_template_with_history(query, chat_memory):  
+    condense_template = """Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    
+    {chat_history}
+    
+    Human: {question}
+    AI:"""
+    CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(condense_template)
+        
+    # extract chat history
+    chats = chat_memory.load_memory_variables({})
+    chat_history_all = chats['history']
+    print('chat_history_all: ', chat_history_all)
+
+    # use last two chunks of chat history
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000,chunk_overlap=0)
+    texts = text_splitter.split_text(chat_history_all) 
+
+    pages = len(texts)
+    print('pages: ', pages)
+
+    if pages >= 2:
+        chat_history = f"{texts[pages-2]} {texts[pages-1]}"
+    elif pages == 1:
+        chat_history = texts[0]
+    else:  # 0 page
+        chat_history = ""
+    print('chat_history:\n ', chat_history)
+
+    # make a question using chat history
+    CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history)
+
+    result = llm(CONDENSE_QUESTION_PROMPT)
+    print('result: ', result)
+
+    return result    
+
 def get_answer_using_query(query, vectorstore, rag_type):
     wrapper_store = VectorStoreIndexWrapper(vectorstore=vectorstore)
     
@@ -176,13 +215,13 @@ def lambda_handler(event, context):
     body = event['body']
     print('body: ', body)
 
-    global llm
+    global llm, chat_memory
     global enableConversationMode  # debug
        
     start = int(time.time())    
 
     msg = ""
-    
+    msg2 = ""
     if type == 'text':
         text = body
 
@@ -202,12 +241,16 @@ def lambda_handler(event, context):
             if enableConversationMode == 'true':
                 msg = conversation.predict(input=text)
 
-                chat_history = memory.load_memory_variables({})
-                print('history: ',chat_history['history'])
+                #chat_history = memory.load_memory_variables({})
+                #print('history: ',chat_history['history'])
+
+                msg2 = get_answer_using_template_with_history(text, chat_memory)
+                print('msg2: ',msg2)
 
             else:
                 msg = llm(text)
             #print('msg: ', msg)
+            chat_memory.save_context({"input": text}, {"output": msg})
             
     elif type == 'document':
         object = body
