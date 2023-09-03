@@ -144,7 +144,7 @@ def load_document(file_type, s3_file_name):
     return texts
 
 def get_answer_using_chat_history(query, chat_memory):  
-    condense_template = """Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor.
+    condense_template = """Using the following conversation, answer for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor.
     
     {chat_history}
     
