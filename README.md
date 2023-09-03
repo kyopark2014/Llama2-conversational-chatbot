@@ -64,6 +64,8 @@ llm = SagemakerEndpoint(
 
 ## Conversation
 
+대화(Conversation)에서 chat history를 이용하기 위해서는 아래 방안1의 [ConversationBufferMemory](https://python.langchain.com/docs/modules/memory/types/buffer)을 이용하는 방법과 방안 2와 같이 chat history의 length를 직접 관리하면서 history를 PromptTemplate을 이용하여 prompt에 포함하는 방법이 있습니다. [lambda-chat](./lambda-chat/lambda_function.py)의 methodOfConversation을 이용하여 ConversationChain 또는 PromptTemplate을 선택할 수 있습니다.
+
 ### 방안1: ConversationChain을 이용
 
 [ConversationBufferMemory](https://python.langchain.com/docs/modules/memory/types/buffer)을 이용하여 대화 이력(chat history)를 저장하고, [ConversationChain](https://api.python.langchain.com/en/latest/chains/langchain.chains.conversation.base.ConversationChain.html)
@@ -84,7 +86,7 @@ conversation = ConversationChain(
 msg = conversation.predict(input=text)
 ```
 
-### 방안2: Template을 이용하는 방법
+### 방안2: PromptTemplate을 이용하는 방법
 
 [ConversationBufferMemory](https://python.langchain.com/docs/modules/memory/types/buffer)을 이용하여 대화 이력(chat history)를 저장합니다.
 
