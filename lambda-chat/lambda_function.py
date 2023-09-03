@@ -78,10 +78,19 @@ llm = SagemakerEndpoint(
 )
 
 # memory for retrival docs
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, input_key="question", output_key='answer', human_prefix='Human', ai_prefix='AI')
+#memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, #input_key="question", output_key='answer', human_prefix='Human', ai_prefix='AI')
 
 # memory for conversation
-chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
+#chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
+
+# Conversation
+from langchain.chains import ConversationChain
+from langchain.memory import ConversationBufferMemory
+memory = ConversationBufferMemory()
+conversation = ConversationChain(
+    llm=llm, verbose=True, memory=memory
+)
+
 
 # embedding
 from langchain.embeddings.sagemaker_endpoint import EmbeddingsContentHandler
@@ -103,14 +112,6 @@ embeddings = SagemakerEndpointEmbeddings(
     endpoint_name = endpoint_embedding,
     region_name = aws_region,
     content_handler = content_handler2,
-)
-
-# Conversation
-from langchain.chains import ConversationChain
-from langchain.memory import ConversationBufferMemory
-memory = ConversationBufferMemory()
-conversation = ConversationChain(
-    llm=llm, verbose=True, memory=memory
 )
 
 # load documents from s3
