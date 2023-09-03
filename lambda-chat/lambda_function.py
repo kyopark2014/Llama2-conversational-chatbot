@@ -86,10 +86,10 @@ llm = SagemakerEndpoint(
 # Conversation
 from langchain.chains import ConversationChain
 from langchain.memory import ConversationBufferMemory
-memory = ConversationBufferMemory()
-conversation = ConversationChain(
-    llm=llm, verbose=True, memory=memory
-)
+#memory = ConversationBufferMemory()
+#conversation = ConversationChain(
+#    llm=llm, verbose=True, memory=memory
+#)
 
 # memory for conversation
 chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
@@ -147,7 +147,7 @@ def load_document(file_type, s3_file_name):
             
     return texts
 
-def get_answer_using_template_with_history(query, chat_memory):  
+def get_answer_using_chat_history(query, chat_memory):  
     condense_template = """Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer.
     
     {chat_history}
@@ -240,13 +240,9 @@ def lambda_handler(event, context):
             print(f"query size: {querySize}, words: {textCount}")
                 
             if enableConversationMode == 'true':
-                msg = conversation.predict(input=text)
+                #msg = conversation.predict(input=text)
 
-                #chat_history = memory.load_memory_variables({})
-                #print('history: ',chat_history['history'])
-
-                msg2 = get_answer_using_template_with_history(text, chat_memory)
-                print('msg2: ',msg2)
+                msg = get_answer_using_chat_history(text, chat_memory)
 
             else:
                 msg = llm(text)
