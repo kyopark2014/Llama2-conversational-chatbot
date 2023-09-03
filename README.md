@@ -64,7 +64,7 @@ llm = SagemakerEndpoint(
 
 ## Conversation
 
-### ConversationChain을 이용
+### 방안1: ConversationChain을 이용
 
 [ConversationBufferMemory](https://python.langchain.com/docs/modules/memory/types/buffer)을 이용하여 대화 이력(chat history)를 저장하고, [ConversationChain](https://api.python.langchain.com/en/latest/chains/langchain.chains.conversation.base.ConversationChain.html)
 을 이용하여 history를 관리합니다.
@@ -84,7 +84,7 @@ conversation = ConversationChain(
 msg = conversation.predict(input=text)
 ```
 
-### Template을 이용하는 방법
+### 방안2: Template을 이용하는 방법
 
 [ConversationBufferMemory](https://python.langchain.com/docs/modules/memory/types/buffer)을 이용하여 대화 이력(chat history)를 저장합니다.
 
@@ -142,7 +142,7 @@ msg = get_answer_using_chat_history(text, chat_memory)
 chat_memory.save_context({"input": text}, {"output": msg})
 ```
 
-#### RAG와 함께 대화하기
+#### 참고: RAG와 함께 대화하기
 
 [RAG with OpenSearch](https://github.com/kyopark2014/question-answering-chatbot-with-vector-store/blob/main/lambda-chat/lambda_function.py)와 같이 chat history를 위한 chat_memory와 RAG에서 document를 retrieval을 하기 위한 memory를 정의합니다.
 
