@@ -65,7 +65,7 @@ index = 0;
 
 addNotifyMessage("start chat with Llama 2");
 
-addReceivedMessage("Wecome to Llama 2. Use the enhance chatbot for question and answering using RAG when you upload a document such as TXT, PDF, or CSV.")
+addReceivedMessage("Wecome to Llama 2. Use the conversational chatbot and summarize documents, TXT, PDF, and CSV.")
 
 // Listeners
 message.addEventListener('keyup', function(e){
