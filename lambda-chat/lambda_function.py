@@ -177,9 +177,11 @@ def get_answer_using_template_with_history(query, chat_memory):
     print('chat_history:\n ', chat_history)
 
     # make a question using chat history
-    CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history)
-
-    result = llm(CONDENSE_QUESTION_PROMPT)
+    if pages >= 1:
+        CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history)
+        result = llm(CONDENSE_QUESTION_PROMPT)
+    else:
+        result = llm(query)
     print('result: ', result)
 
     return result    
