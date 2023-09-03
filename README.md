@@ -6,7 +6,7 @@
 ## 아키텍처 개요
 
 
-<img src="https://github.com/kyopark2014/Llama2-chatbot-with-vector-store/assets/52392004/e54d2e2b-1a2a-459d-af00-1afc323a20ff" width="800">
+<img src="https://github.com/kyopark2014/Llama2-conversational-chatbot/assets/52392004/86c8ada9-a72e-488f-a941-3a5710edb688" width="800">
 
 
 ## 주요 구성
