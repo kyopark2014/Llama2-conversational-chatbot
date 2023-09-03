@@ -11,10 +11,11 @@ import * as apiGateway from 'aws-cdk-lib/aws-apigateway';
 import * as s3Deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
+const region = process.env.CDK_DEFAULT_REGION; 
 const debug = false;
 const stage = 'dev';
 const s3_prefix = 'docs';
-const projectName = "llama2-chatbot";
+const projectName = "llama2-conversational-chatbot";
 const bucketName = `storage-for-${projectName}`;
 const endpoint_llm = 'jumpstart-dft-meta-textgeneration-llama-2-7b-f';
 const endpoint_embedding = 'jumpstart-dft-hf-textembedding-gpt-j-6b-fp16';

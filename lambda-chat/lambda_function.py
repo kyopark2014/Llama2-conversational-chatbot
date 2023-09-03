@@ -197,7 +197,7 @@ def lambda_handler(event, context):
 
             querySize = len(text)
             textCount = len(text.split())
-            print(f"query size: {querySize}, workds: {textCount}")
+            print(f"query size: {querySize}, words: {textCount}")
                 
             if enableConversationMode == 'true':
                 msg = conversation.predict(input=text)
