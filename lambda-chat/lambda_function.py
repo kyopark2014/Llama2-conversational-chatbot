@@ -71,6 +71,8 @@ parameters = {
     "top_p": 0.9, 
     "temperature": 0.1
 } 
+HUMAN_PROMPT = "\n\nHuman:"
+AI_PROMPT = "\n\nAssistant:"
 
 llm = SagemakerEndpoint(
     endpoint_name = endpoint_llm, 
@@ -149,6 +151,7 @@ def get_answer_using_chat_history(query, chat_memory):
     {chat_history}
     
     Human: {question}
+
     AI:"""
     CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(condense_template)
         
@@ -242,7 +245,7 @@ def lambda_handler(event, context):
                     msg = get_answer_using_chat_history(text, chat_memory)
                     chat_memory.save_context({"input": text}, {"output": msg})            
             else:
-                msg = llm(text)
+                msg = llm(HUMAN_PROMPT+text+AI_PROMPT)
             
     elif type == 'document':
         object = body
