@@ -183,27 +183,7 @@ def get_answer_using_chat_history(query, chat_memory):
     print('result: ', result)
 
     return result    
-
-def get_answer_using_query(query, vectorstore, rag_type):
-    wrapper_store = VectorStoreIndexWrapper(vectorstore=vectorstore)
-    
-    if rag_type == 'faiss':
-        query_embedding = vectorstore.embedding_function(query)
-        relevant_documents = vectorstore.similarity_search_by_vector(query_embedding)
-    elif rag_type == 'opensearch':
-        relevant_documents = vectorstore.similarity_search(query)
-    
-    print(f'{len(relevant_documents)} documents are fetched which are relevant to the query.')
-    print('----')
-    for i, rel_doc in enumerate(relevant_documents):
-        print(f'## Document {i+1}: {rel_doc.page_content}.......')
-        print('---')
-    
-    answer = wrapper_store.query(question=query, llm=llm)
-    print(answer)
-
-    return answer
-        
+       
 def lambda_handler(event, context):
     print(event)
     userId  = event['user-id']
