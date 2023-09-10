@@ -243,6 +243,13 @@ chat_memory.save_context({"input": text}, {"output": msg})
 
 ### 실행결과
 
+"I live in Seoul, Korea." 라고 입력합니다.
+
+![image](https://github.com/kyopark2014/Llama2-conversational-chatbot/assets/52392004/f489d8b7-7d9d-4fc0-a0ad-2ffd9671232a)
+
+이후 아래처럼 대명사로 물었을때에 이전 chat history로 아래처럼 응답합니다.
+
+![image](https://github.com/kyopark2014/Llama2-conversational-chatbot/assets/52392004/654d4fa5-876f-4f59-8d69-81b9ce05b510)
 
 
 
