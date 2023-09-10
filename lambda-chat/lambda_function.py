@@ -90,7 +90,7 @@ if methodOfConversation == 'ConversationChain':
     )
 elif methodOfConversation == 'PromptTemplate':
     # memory for conversation
-    chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='AI')
+    chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='Assistant')
 
 # Embedding
 from langchain.embeddings.sagemaker_endpoint import EmbeddingsContentHandler
@@ -152,7 +152,7 @@ def get_answer_using_chat_history(query, chat_memory):
     
     Human: {question}
 
-    AI:"""
+    Assistant:"""
     CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(condense_template)
         
     # extract chat history
