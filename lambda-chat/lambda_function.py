@@ -83,6 +83,8 @@ llm = SagemakerEndpoint(
     content_handler = content_handler
 )
 
+map = dict() # Conversation
+
 # Conversation
 if methodOfConversation == 'ConversationChain':
     memory = ConversationBufferMemory()
