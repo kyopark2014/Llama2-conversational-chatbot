@@ -62,6 +62,40 @@ llm = SagemakerEndpoint(
 )
 ```
 
+## Prompt
+
+[How to Prompt Llama 2](https://huggingface.co/blog/llama2#how-to-prompt-llama-2)에서 설명하고 있는 Prompt는 아래와 같습니다.
+
+```text
+<s>[INST] <<SYS>>
+{{ system_prompt }}
+<</SYS>>
+
+{{ user_message }} [/INST]
+```
+
+이를 사용할때는 아래와 같습니다.
+
+```text
+<s>[INST] <<SYS>>
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
+<</SYS>>
+
+There's a llama in my garden 😱 What should I do? [/INST]
+```
+
+또한 call history를 고려하면 아래와 같습니다.
+
+```text
+<s>[INST] <<SYS>>
+{{ system_prompt }}
+<</SYS>>
+
+{{ user_msg_1 }} [/INST] {{ model_answer_1 }} </s><s>[INST] {{ user_msg_2 }} [/INST]
+```
+
 ## Conversation
 
 대화(Conversation)에서 chat history를 이용하기 위해서는 아래 방안1의 [ConversationBufferMemory](https://python.langchain.com/docs/modules/memory/types/buffer)을 이용하는 방법과 방안 2와 같이 chat history의 length를 직접 관리하면서 history를 PromptTemplate을 이용하여 prompt에 포함하는 방법이 있습니다. [lambda-chat](./lambda-chat/lambda_function.py)의 methodOfConversation을 이용하여 ConversationChain 또는 PromptTemplate을 선택할 수 있습니다.
