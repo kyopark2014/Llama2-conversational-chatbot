@@ -19,7 +19,7 @@ const projectName = "llama2-conversational-chatbot";
 const bucketName = `storage-for-${projectName}`;
 const endpoint_llm = 'jumpstart-dft-meta-textgeneration-llama-2-7b-f';
 const endpoint_embedding = 'jumpstart-dft-hf-textembedding-gpt-j-6b-fp16';
-const enableConversationMode = 'true';
+const enableConversationMode = 'false';
 
 export class CdkLlama2ConversationStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
