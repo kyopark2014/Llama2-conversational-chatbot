@@ -7,6 +7,7 @@ from io import BytesIO
 import PyPDF2
 import csv
 import sys
+import re
 
 from langchain import PromptTemplate, SagemakerEndpoint
 from langchain.llms.sagemaker_endpoint import LLMContentHandler
@@ -114,7 +115,7 @@ embeddings = SagemakerEndpointEmbeddings(
     content_handler = content_handler2,
 )
 
-# load documents from s3
+# load documents from s3 for pdf and txt
 def load_document(file_type, s3_file_name):
     s3r = boto3.resource("s3")
     doc = s3r.Object(s3_bucket, s3_prefix+'/'+s3_file_name)
@@ -129,21 +130,95 @@ def load_document(file_type, s3_file_name):
         contents = '\n'.join(raw_text)    
         
     elif file_type == 'txt':        
-        contents = doc.get()['Body'].read()
-    elif file_type == 'csv':        
-        body = doc.get()['Body'].read()
-        reader = csv.reader(body)        
-        contents = CSVLoader(reader)
-    
+        contents = doc.get()['Body'].read().decode('utf-8')
+        
     print('contents: ', contents)
     new_contents = str(contents).replace("\n"," ") 
     print('length: ', len(new_contents))
 
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=100)
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=100,
+        separators=["\n\n", "\n", ".", " ", ""],
+        length_function = len,
+    ) 
+
     texts = text_splitter.split_text(new_contents) 
     print('texts[0]: ', texts[0])
-            
+    
     return texts
+
+# load csv documents from s3
+def load_csv_document(s3_file_name):
+    s3r = boto3.resource("s3")
+    doc = s3r.Object(s3_bucket, s3_prefix+'/'+s3_file_name)
+
+    lines = doc.get()['Body'].read().decode('utf-8').split('\n')   # read csv per line
+    print('lins: ', len(lines))
+        
+    columns = lines[0].split(',')  # get columns
+    #columns = ["Category", "Information"]  
+    #columns_to_metadata = ["type","Source"]
+    print('columns: ', columns)
+    
+    docs = []
+    n = 0
+    for row in csv.DictReader(lines, delimiter=',',quotechar='"'):
+        # print('row: ', row)
+        #to_metadata = {col: row[col] for col in columns_to_metadata if col in row}
+        values = {k: row[k] for k in columns if k in row}
+        content = "\n".join(f"{k.strip()}: {v.strip()}" for k, v in values.items())
+        doc = Document(
+            page_content=content,
+            metadata={
+                'name': s3_file_name,
+                'row': n+1,
+            }
+            #metadata=to_metadata
+        )
+        docs.append(doc)
+        n = n+1
+    print('docs[0]: ', docs[0])
+
+    return docs
+
+def get_summary(texts):    
+    # check korean
+    pattern_hangul = re.compile('[\u3131-\u3163\uac00-\ud7a3]+') 
+    word_kor = pattern_hangul.search(str(texts))
+    print('word_kor: ', word_kor)
+    
+    if word_kor:
+        #prompt_template = """\n\nHuman: 다음 텍스트를 간결하게 요약하세오. 텍스트의 요점을 다루는 글머리 기호로 응답을 반환합니다.
+        prompt_template = """\n\nHuman: 다음 텍스트를 요약해서 500자 이내로 설명하세오.
+
+        {text}
+        
+        Assistant:"""        
+    else:         
+        prompt_template = """\n\nHuman: Write a concise summary of the following:
+
+        {text}
+        
+        Assistant:"""
+    
+    PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
+    chain = load_summarize_chain(llm, chain_type="stuff", prompt=PROMPT)
+
+    docs = [
+        Document(
+            page_content=t
+        ) for t in texts[:3]
+    ]
+    summary = chain.run(docs)
+    print('summary: ', summary)
+
+    if summary == '':  # error notification
+        summary = 'Fail to summarize the document. Try agan...'
+        return summary
+    else:
+        # return summary[1:len(summary)-1]   
+        return summary
 
 def get_answer_using_chat_history(query, chat_memory):  
     condense_template = """Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor.
@@ -195,13 +270,23 @@ def lambda_handler(event, context):
     body = event['body']
     print('body: ', body)
 
-    global llm, chat_memory
+    global llm, chat_memory, map
     global enableConversationMode  # debug
+
+    if userId in map:
+        chat_memory = map[userId]
+        print('chat_memory exist. reuse it!')
+    else: 
+        chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='Assistant')
+        map[userId] = chat_memory
+        print('chat_memory does not exist. create new one!')
+
+    if methodOfConversation == 'ConversationChain':
+        conversation = ConversationChain(llm=llm, verbose=True, memory=chat_memory)
        
     start = int(time.time())    
 
     msg = ""
-    msg2 = ""
     if type == 'text':
         text = body
 
@@ -223,7 +308,9 @@ def lambda_handler(event, context):
                     msg = conversation.predict(input=text)
                 elif methodOfConversation == 'PromptTemplate':
                     msg = get_answer_using_chat_history(text, chat_memory)
-                    chat_memory.save_context({"input": text}, {"output": msg})            
+
+                    storedMsg = str(msg).replace("\n"," ") 
+                    chat_memory.save_context({"input": text}, {"output": storedMsg})         
             else:
                 msg = llm(HUMAN_PROMPT+text+AI_PROMPT)
             
@@ -233,28 +320,16 @@ def lambda_handler(event, context):
         file_type = object[object.rfind('.')+1:len(object)]
         print('file_type: ', file_type)
             
-        # load documents where text, pdf, csv are supported
-        texts = load_document(file_type, object)
-
-        docs = [
-            Document(
-                page_content=t
-            ) for t in texts[:3]
-        ]
-
-        # summerization to show the document
-        prompt_template = """Write a concise summary of the following:
-
-        {text}
-                
-        CONCISE SUMMARY """
-
-        PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
-        chain = load_summarize_chain(llm, chain_type="stuff", prompt=PROMPT)
-        summary = chain.run(docs)
-        print('summary: ', summary)
-
-        msg = summary
+        if file_type == 'csv':
+            docs = load_csv_document(object)
+            texts = []
+            for doc in docs:
+                texts.append(doc.page_content)
+            print('texts: ', texts)
+        else:
+            texts = load_document(file_type, object)
+            
+        msg = get_summary(texts)            
                 
     elapsed_time = int(time.time()) - start
     print("total run time(sec): ", elapsed_time)
