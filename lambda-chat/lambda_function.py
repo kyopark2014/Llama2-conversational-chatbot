@@ -101,7 +101,7 @@ if methodOfConversation == 'ConversationChain':
     )
 elif methodOfConversation == 'PromptTemplate':
     # memory for conversation
-    chat_memory = ConversationBufferMemory(human_prefix='Human', ai_prefix='Assistant')
+    chat_memory = ConversationBufferMemory(human_prefix='User', ai_prefix='Assistant')
 
 # Embedding
 from langchain.embeddings.sagemaker_endpoint import EmbeddingsContentHandler
@@ -200,13 +200,13 @@ def get_summary(texts):
     
     if word_kor:
         #prompt_template = """\n\nHuman: 다음 텍스트를 간결하게 요약하세오. 텍스트의 요점을 다루는 글머리 기호로 응답을 반환합니다.
-        prompt_template = """\n\nHuman: 다음 텍스트를 요약해서 500자 이내로 설명하세오.
+        prompt_template = """\n\User: 다음 텍스트를 요약해서 500자 이내로 설명하세오.
 
         {text}
         
         Assistant:"""        
     else:         
-        prompt_template = """\n\nHuman: Write a concise summary of the following:
+        prompt_template = """\n\User: Write a concise summary of the following:
 
         {text}
         
