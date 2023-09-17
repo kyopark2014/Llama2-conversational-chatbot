@@ -232,18 +232,20 @@ def get_summary(texts):
 
 def get_answer_using_chat_history(query, chat_memory):  
     condense_template = """<s>[INST] <<SYS>>
-    You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.    
-    If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.<</SYS>>
-    
-    Here are some previous conversations between the Assistant and User:
+    Using the following conversation between the Assistant and User, answer friendly for the newest question. 
 
     {chat_history}
-
-    Here is the latest conversation between Assistant and User.<</SYS>>
+    
+    If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor. <</SYS>>
 
     {question} [/INST]"""
     #Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor.
+
+    #You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please #ensure that your responses are socially unbiased and positive in nature.    
+    #If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.<</SYS>>
     
+    #Here are some previous conversations between the Assistant and User:
+    #Here is the latest conversation between Assistant and User.
     CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(condense_template)
         
     # extract chat history
