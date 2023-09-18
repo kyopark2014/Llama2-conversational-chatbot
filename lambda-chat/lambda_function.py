@@ -250,7 +250,8 @@ Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with
 <s>[INST] Tell me how to travel the places. [/INST]"""
 
 def get_history(history):
-    if history.rfind('User: ')>=0:
+    msg_history = ""
+    while history.rfind('User: ')>=0:
         # First message        
         userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
         print('userMsg: ', userMsg)
@@ -265,11 +266,8 @@ def get_history(history):
             print('assistantMsg: ', assistantMsg)            
         
         msg_history = userMsg + ' [/INST] '
-        msg_history = msg_history + assistantMsg + ' </s>'
-
-        print('msg_history: ', msg_history)
+        msg_history = msg_history + assistantMsg + ' </s>'    
     return  msg_history
-
 
 def get_answer_using_chat_history(query, chat_memory):  
     condense_template = """<s>[INST] <<SYS>>
