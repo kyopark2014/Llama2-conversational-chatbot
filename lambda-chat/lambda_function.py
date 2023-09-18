@@ -251,8 +251,9 @@ Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with
 
 def get_history(history):
     msg_history = ""
-    while history.rfind('User: ')>=0:
-        # First message        
+
+    # first message
+    if history.rfind('User: ')>=0:
         userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
         print('userMsg: ', userMsg)
         history = history[history.rfind('Assistant: ')+11:len(history)]
@@ -266,6 +267,22 @@ def get_history(history):
             print('assistantMsg: ', assistantMsg)            
         
         msg_history = userMsg + ' [/INST] '
+        msg_history = msg_history + assistantMsg + ' </s>'    
+    
+    while history.rfind('User: ')>=0:
+        userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
+        print('userMsg: ', userMsg)
+        history = history[history.rfind('Assistant: ')+11:len(history)]
+
+        if history.rfind('User: ')>=0:
+            assistantMsg = history[0:history.rfind('User: ')]
+            print('assistantMsg: ', assistantMsg)
+            history = history[history.rfind('User: '):len(history)]
+        else:
+            assistantMsg = history[0:len(history)]
+            print('assistantMsg: ', assistantMsg)            
+        
+        msg_history = msg_history + '<s>[INST] ' + userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'    
     return  msg_history
 
