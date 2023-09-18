@@ -249,8 +249,9 @@ I live in Seoul. [/INST]
 Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with a rich history and culture. Is there anything specific you would like to know or discuss about Seoul or Korea in general? I'm here to help and provide information that is safe, respectful, and socially unbiased. Please feel free to ask! <s>
 <s>[INST] Tell me how to travel the places. [/INST]"""
 
-def get_history(history):
+def get_history(chat_history):
     msg_history = ""
+    history = chat_history
 
     # first message
     if history.rfind('User: ')>=0:
