@@ -310,7 +310,11 @@ def get_answer_using_chat_history(query, chat_memory):
     print('chat_history_all: ', chat_history_all)
 
     # use last two chunks of chat history
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2000,chunk_overlap=0)
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=4000,
+        chunk_overlap=0,
+        separators=["\n\n", "\n", ".", " ", ""],
+        length_function = len)
     texts = text_splitter.split_text(chat_history_all) 
 
     pages = len(texts)
@@ -328,7 +332,6 @@ def get_answer_using_chat_history(query, chat_memory):
 
     if chat_history.find('User: ') >= 0:
         chat_history = chat_history[chat_history.find('User: '):len(chat_history)]
-        print('history (first):\n ', chat_history)
 
         history = get_history(chat_history)
         print('history: ', history)
