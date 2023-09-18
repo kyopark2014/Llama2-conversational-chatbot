@@ -266,7 +266,7 @@ def get_history(history):
             assistantMsg = history[0:len(history)]
             print('assistantMsg: ', assistantMsg)            
         
-        msg_history = userMsg + ' [/INST] '
+        msg_history = msg_history + userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'    
 
         print('first history: ', msg_history)
