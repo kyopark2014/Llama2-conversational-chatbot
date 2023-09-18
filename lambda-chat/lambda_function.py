@@ -309,6 +309,8 @@ def get_answer_using_chat_history(query, chat_memory):
         chat_history = ""
     print('chat_history:\n ', chat_history)
 
+    print('pos: ', chat_history.rfind('User: '))
+
     if chat_history.rfind('User: '):
         chat_history = chat_history[chat_history.rfind('User: '):len(chat_history)]
         print('history (first):\n ', chat_history)
