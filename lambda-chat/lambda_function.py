@@ -293,8 +293,8 @@ You are a helpful, respectful and honest assistant. Always answer as helpfully a
 If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
 <</SYS>>
 
-Hi I live in Seoul. [/INST] 
-Tell me the favorite places in the city </s>
+I live in Seoul. [/INST] 
+Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with a rich history and culture. Is there anything specific you would like to know or discuss about Seoul or Korea in general? I'm here to help and provide information that is safe, respectful, and socially unbiased. Please feel free to ask! <s>
 <s>[INST] Tell me how to travel the places. [/INST]"""
 
 def lambda_handler(event, context):
@@ -351,7 +351,8 @@ def lambda_handler(event, context):
                     chat_memory.save_context({"input": text}, {"output": storedMsg})         
             else:
                 #msg = llm(HUMAN_PROMPT+text+AI_PROMPT)
-                msg = llm(Llama2_BASIC_PROMPT.format(system_prompt=system_prompt, question=text))
+                #msg = llm(Llama2_BASIC_PROMPT.format(system_prompt=system_prompt, question=text))
+                msg = llm(message_with_history)
             
     elif type == 'document':
         object = body
