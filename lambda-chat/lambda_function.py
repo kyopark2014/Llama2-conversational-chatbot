@@ -72,16 +72,8 @@ parameters = {
     "top_p": 0.9, 
     "temperature": 0.1
 } 
-#HUMAN_PROMPT = "\n\nHuman:"
-#AI_PROMPT = "\n\nAssistant:"
-
-HUMAN_PROMPT = """<s>[INST] <<SYS>>
-You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
-
-If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
-<</SYS>>"""
-
-AI_PROMPT = "[/INST]"
+HUMAN_PROMPT = "\n\nUser:"
+AI_PROMPT = "\n\nAssistant:"
 
 llm = SagemakerEndpoint(
     endpoint_name = endpoint_llm, 
@@ -276,7 +268,35 @@ def get_answer_using_chat_history(query, chat_memory):
     print('result: ', result)
 
     return result    
-       
+
+
+system_prompt = """You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+
+Llama2_BASIC_PROMPT = """<s>[INST] <<SYS>>
+{system_promp}
+<</SYS>>
+
+{question} [/INST]"""
+
+Llama2_HISTORY_PROMPT = """<s>[INST] <<SYS>>
+{system_promp}
+<</SYS>>
+
+{history}
+<s>[INST] {question} [/INST]"""
+
+message_with_history = """<s>[INST] <<SYS>>
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
+<</SYS>>
+
+Hi I live in Seoul. [/INST] 
+Tell me the favorite places in the city </s>
+<s>[INST] Tell me how to travel the places. [/INST]"""
+
 def lambda_handler(event, context):
     print(event)
     userId  = event['user-id']
@@ -330,7 +350,8 @@ def lambda_handler(event, context):
                     storedMsg = str(msg).replace("\n"," ") 
                     chat_memory.save_context({"input": text}, {"output": storedMsg})         
             else:
-                msg = llm(HUMAN_PROMPT+text+AI_PROMPT)
+                #msg = llm(HUMAN_PROMPT+text+AI_PROMPT)
+                msg = llm(Llama2_BASIC_PROMPT.format(system_prompt=system_prompt, question=text))
             
     elif type == 'document':
         object = body
