@@ -255,50 +255,59 @@ def get_history(history):
     # first message
     if history.find('User: ')>=0:
         userMsg = history[history.find('User: ')+6:history.find('Assistant: ')]
-        print('userMsg: ', userMsg)
+        #print('userMsg: ', userMsg)
         history = history[history.find('Assistant: ')+11:len(history)]
 
         if history.find('User: ')>=0:
             assistantMsg = history[0:history.find('User: ')]
-            print('assistantMsg: ', assistantMsg)
+            #print('assistantMsg: ', assistantMsg)
             history = history[history.find('User: '):len(history)]
         else:
             assistantMsg = history[0:len(history)]
-            print('assistantMsg: ', assistantMsg)            
+            #print('assistantMsg: ', assistantMsg)            
         
         msg_history = userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'    
-
-        print('first history: ', msg_history)
+        #print('first history: ', msg_history)
     
     while history.find('User: ')>=0:
         userMsg = history[history.find('User: ')+6:history.find('Assistant: ')]
-        print('userMsg: ', userMsg)
+        #print('userMsg: ', userMsg)
         history = history[history.find('Assistant: ')+11:len(history)]
 
         if history.find('User: ')>=0:
             assistantMsg = history[0:history.find('User: ')]
-            print('assistantMsg: ', assistantMsg)
+            #print('assistantMsg: ', assistantMsg)
             history = history[history.find('User: '):len(history)]
         else:
             assistantMsg = history[0:len(history)]
-            print('assistantMsg: ', assistantMsg)            
+            #print('assistantMsg: ', assistantMsg)            
         
         msg_history = msg_history + '<s>[INST] ' + userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'    
     
-    print('full history: ', msg_history)
+    #print('full history: ', msg_history)
     return  msg_history
 
 def get_answer_using_chat_history(query, chat_memory):  
     condense_template = """<s>[INST] <<SYS>>
     Using the following conversation between the Assistant and User, answer friendly for the newest question. 
+    If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor. 
+    <</SYS>>
 
-    {chat_history}
+    {chat_history}<s>[INST] {question} [/INST]"""
+
+    #condense_template = """<s>[INST] <<SYS>>
+    #Using the following conversation between the Assistant and User, answer friendly for the newest question. 
+
+    #{chat_history}
     
-    If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor. <</SYS>>
+    #If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor. <</SYS>>
 
-    {question} [/INST]"""
+    #{question} [/INST]"""
+
+
+
     #Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor.
 
     #You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please #ensure that your responses are socially unbiased and positive in nature.    
@@ -340,7 +349,8 @@ def get_answer_using_chat_history(query, chat_memory):
         
     # make a question using chat history
     if pages >= 1:
-        result = llm(CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history))
+        #result = llm(CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history))
+        result = llm(CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=history))
     else:
         result = llm(query)
         
