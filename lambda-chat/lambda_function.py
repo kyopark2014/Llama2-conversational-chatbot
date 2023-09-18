@@ -249,20 +249,19 @@ I live in Seoul. [/INST]
 Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with a rich history and culture. Is there anything specific you would like to know or discuss about Seoul or Korea in general? I'm here to help and provide information that is safe, respectful, and socially unbiased. Please feel free to ask! <s>
 <s>[INST] Tell me how to travel the places. [/INST]"""
 
-def get_history(chat_history):
+def get_history(history):
     msg_history = ""
-    history = chat_history
 
     # first message
-    if history.rfind('User: ')>=0:
-        userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
+    if history.find('User: ')>=0:
+        userMsg = history[history.find('User: ')+6:history.rfind('Assistant: ')]
         print('userMsg: ', userMsg)
-        history = history[history.rfind('Assistant: ')+11:len(history)]
+        history = history[history.find('Assistant: ')+11:len(history)]
 
-        if history.rfind('User: ')>=0:
-            assistantMsg = history[0:history.rfind('User: ')]
+        if history.find('User: ')>=0:
+            assistantMsg = history[0:history.find('User: ')]
             print('assistantMsg: ', assistantMsg)
-            history = history[history.rfind('User: '):len(history)]
+            history = history[history.find('User: '):len(history)]
         else:
             assistantMsg = history[0:len(history)]
             print('assistantMsg: ', assistantMsg)            
@@ -270,15 +269,15 @@ def get_history(chat_history):
         msg_history = userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'    
     
-    while history.rfind('User: ')>=0:
-        userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
+    while history.find('User: ')>=0:
+        userMsg = history[history.find('User: ')+6:history.find('Assistant: ')]
         print('userMsg: ', userMsg)
-        history = history[history.rfind('Assistant: ')+11:len(history)]
+        history = history[history.find('Assistant: ')+11:len(history)]
 
-        if history.rfind('User: ')>=0:
-            assistantMsg = history[0:history.rfind('User: ')]
+        if history.find('User: ')>=0:
+            assistantMsg = history[0:history.find('User: ')]
             print('assistantMsg: ', assistantMsg)
-            history = history[history.rfind('User: '):len(history)]
+            history = history[history.find('User: '):len(history)]
         else:
             assistantMsg = history[0:len(history)]
             print('assistantMsg: ', assistantMsg)            
@@ -325,10 +324,10 @@ def get_answer_using_chat_history(query, chat_memory):
         chat_history = ""
     print('chat_history:\n ', chat_history)
 
-    print('pos: ', chat_history.rfind('User: '))
+    print('pos: ', chat_history.find('User: '))
 
-    if chat_history.rfind('User: ') >= 0:
-        chat_history = chat_history[chat_history.rfind('User: '):len(chat_history)]
+    if chat_history.find('User: ') >= 0:
+        chat_history = chat_history[chat_history.find('User: '):len(chat_history)]
         print('history (first):\n ', chat_history)
 
         history = get_history(chat_history)
