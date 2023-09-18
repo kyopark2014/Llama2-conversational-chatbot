@@ -222,6 +222,33 @@ def get_summary(texts):
         # return summary[1:len(summary)-1]   
         return summary
 
+system_prompt = """You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+
+Llama2_BASIC_PROMPT = """<s>[INST] <<SYS>>
+{system_prompt}
+<</SYS>>
+
+{question} [/INST]"""
+
+Llama2_HISTORY_PROMPT = """<s>[INST] <<SYS>>
+{system_prompt}
+<</SYS>>
+
+{history}
+<s>[INST] {question} [/INST]"""
+
+message_with_history = """<s>[INST] <<SYS>>
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
+<</SYS>>
+
+I live in Seoul. [/INST] 
+Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with a rich history and culture. Is there anything specific you would like to know or discuss about Seoul or Korea in general? I'm here to help and provide information that is safe, respectful, and socially unbiased. Please feel free to ask! <s>
+<s>[INST] Tell me how to travel the places. [/INST]"""
+
 def get_answer_using_chat_history(query, chat_memory):  
     condense_template = """<s>[INST] <<SYS>>
     Using the following conversation between the Assistant and User, answer friendly for the newest question. 
@@ -260,6 +287,43 @@ def get_answer_using_chat_history(query, chat_memory):
         chat_history = ""
     print('chat_history:\n ', chat_history)
 
+    print('\n\n\n')
+    history = chat_history
+    history = history[history.rfind('User: ')+1:len(history)]
+
+    if history.rfind('User: '):
+        # First message
+        userMsg = history[0:history.rfind('Assistant: ')]
+        print('userMsg: ', userMsg)
+        history = history[history.rfind('Assistant: ')+11:len(history)]
+        assistantMsg = history[0:history.rfind('User: ')]
+        print('assistantMsg: ', assistantMsg)
+        history = history[history.rfind('User: ')+6:len(history)]
+        
+        msg_history = userMsg + ' [/INST] '
+        msg_history = msg_history + assistantMsg + ' </s>'
+
+        # last messages
+        if history.rfind('User: '):
+            userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
+            print('userMsg: ', userMsg)
+            history = history[history.rfind('Assistant: ')+11:len(history)]
+
+            if(history.rfind('User: ')):
+                assistantMsg = history[history.rfind('Assistant: ')+11:history.rfind('User: ')]
+                print('assistantMsg: ', assistantMsg)
+                history = history[history.rfind('User: ')+6:len(history)]
+            else:
+                assistantMsg = history[history.rfind('Assistant: ')+11:len(history)]
+                print('assistantMsg: ', assistantMsg)
+                # break
+                            
+            msg_history = userMsg + ' [/INST] '
+            msg_history = msg_history + assistantMsg + ' </s>'
+
+        print('msg_history: ', msg_history)
+
+
     # make a question using chat history
     if pages >= 1:
         result = llm(CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history))
@@ -269,33 +333,6 @@ def get_answer_using_chat_history(query, chat_memory):
 
     return result    
 
-
-system_prompt = """You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
-
-If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
-
-Llama2_BASIC_PROMPT = """<s>[INST] <<SYS>>
-{system_prompt}
-<</SYS>>
-
-{question} [/INST]"""
-
-Llama2_HISTORY_PROMPT = """<s>[INST] <<SYS>>
-{system_prompt}
-<</SYS>>
-
-{history}
-<s>[INST] {question} [/INST]"""
-
-message_with_history = """<s>[INST] <<SYS>>
-You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
-
-If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
-<</SYS>>
-
-I live in Seoul. [/INST] 
-Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with a rich history and culture. Is there anything specific you would like to know or discuss about Seoul or Korea in general? I'm here to help and provide information that is safe, respectful, and socially unbiased. Please feel free to ask! <s>
-<s>[INST] Tell me how to travel the places. [/INST]"""
 
 def lambda_handler(event, context):
     print(event)
@@ -346,13 +383,13 @@ def lambda_handler(event, context):
                     msg = conversation.predict(input=text)
                 elif methodOfConversation == 'PromptTemplate':
                     msg = get_answer_using_chat_history(text, chat_memory)
+                    #msg = llm(message_with_history)
 
                     storedMsg = str(msg).replace("\n"," ") 
                     chat_memory.save_context({"input": text}, {"output": storedMsg})         
             else:
                 #msg = llm(HUMAN_PROMPT+text+AI_PROMPT)
-                #msg = llm(Llama2_BASIC_PROMPT.format(system_prompt=system_prompt, question=text))
-                msg = llm(message_with_history)
+                msg = llm(Llama2_BASIC_PROMPT.format(system_prompt=system_prompt, question=text))                
             
     elif type == 'document':
         object = body
