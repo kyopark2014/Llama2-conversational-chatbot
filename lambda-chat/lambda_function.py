@@ -268,6 +268,8 @@ def get_history(history):
         
         msg_history = userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'    
+
+        print('first history: ', msg_history)
     
     while history.find('User: ')>=0:
         userMsg = history[history.find('User: ')+6:history.find('Assistant: ')]
@@ -284,6 +286,8 @@ def get_history(history):
         
         msg_history = msg_history + '<s>[INST] ' + userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'    
+    
+    print('full history: ', msg_history)
     return  msg_history
 
 def get_answer_using_chat_history(query, chat_memory):  
@@ -328,8 +332,6 @@ def get_answer_using_chat_history(query, chat_memory):
         chat_history = ""
     print('chat_history:\n ', chat_history)
 
-    print('pos: ', chat_history.find('User: '))
-
     if chat_history.find('User: ') >= 0:
         chat_history = chat_history[chat_history.find('User: '):len(chat_history)]
 
@@ -341,7 +343,8 @@ def get_answer_using_chat_history(query, chat_memory):
         result = llm(CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history))
     else:
         result = llm(query)
-    print('result: ', result)
+        
+    #print('result: ', result)
 
     return result    
 
@@ -423,7 +426,8 @@ def lambda_handler(event, context):
     elapsed_time = int(time.time()) - start
     print("total run time(sec): ", elapsed_time)
 
-    print('msg: ', msg)
+    print('question: ', text)
+    print('answer: ', msg)
 
     item = {
         'user-id': {'S':userId},
