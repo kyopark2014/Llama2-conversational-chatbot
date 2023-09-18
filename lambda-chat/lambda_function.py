@@ -37,6 +37,28 @@ enableConversationMode = os.environ.get('enableConversationMode', 'enabled')
 print('enableConversationMode: ', enableConversationMode)
 
 methodOfConversation = 'PromptTemplate' # ConversationChain or PromptTemplate
+typeOfHistoryTemplate = 'Llama2' # Llam2 or Basic
+
+# Prompt Template
+HUMAN_PROMPT = "\n\nUser:"
+AI_PROMPT = "\n\nAssistant:"
+
+system_prompt = """You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
+
+Llama2_BASIC_PROMPT = """<s>[INST] <<SYS>>
+{system_prompt}
+<</SYS>>
+
+{question} [/INST]"""
+
+Llama2_HISTORY_PROMPT = """<s>[INST] <<SYS>>
+{system_prompt}
+<</SYS>>
+
+{chat_history}
+<s>[INST] {question} [/INST]"""
 
 class ContentHandler(LLMContentHandler):
     content_type = "application/json"
@@ -72,8 +94,6 @@ parameters = {
     "top_p": 0.9, 
     "temperature": 0.1
 } 
-HUMAN_PROMPT = "\n\nUser:"
-AI_PROMPT = "\n\nAssistant:"
 
 llm = SagemakerEndpoint(
     endpoint_name = endpoint_llm, 
@@ -267,23 +287,6 @@ def get_answer_using_chat_history(query, chat_memory):
 
     return result    
 
-system_prompt = """You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
-
-If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
-
-Llama2_BASIC_PROMPT = """<s>[INST] <<SYS>>
-{system_prompt}
-<</SYS>>
-
-{question} [/INST]"""
-
-Llama2_HISTORY_PROMPT = """<s>[INST] <<SYS>>
-{system_prompt}
-<</SYS>>
-
-{chat_history}
-<s>[INST] {question} [/INST]"""
-
 def get_history(history):
     msg_history = ""
 
@@ -417,15 +420,19 @@ def lambda_handler(event, context):
                 if methodOfConversation == 'ConversationChain':
                     msg = conversation.predict(input=text)
                 elif methodOfConversation == 'PromptTemplate':
-                    #msg = get_answer_using_chat_history(text, chat_memory)
-                    msg = get_answer_using_chat_history_and_Llama2_template(text, chat_memory)
+                    if typeOfHistoryTemplate == "Llama2":
+                        msg = get_answer_using_chat_history_and_Llama2_template(text, chat_memory)
+                    else:
+                        msg = get_answer_using_chat_history(text, chat_memory)
                     
                     storedMsg = str(msg).replace("\n"," ") 
                     chat_memory.save_context({"input": text}, {"output": storedMsg})         
             else:
-                #msg = llm(HUMAN_PROMPT+text+AI_PROMPT)
-                msg = llm(Llama2_BASIC_PROMPT.format(system_prompt=system_prompt, question=text))                
-            
+                if typeOfHistoryTemplate == "Llama2":
+                    msg = llm(Llama2_BASIC_PROMPT.format(system_prompt=system_prompt, question=text))   
+                else:
+                    msg = llm(HUMAN_PROMPT+text+AI_PROMPT)
+                                         
     elif type == 'document':
         object = body
         
