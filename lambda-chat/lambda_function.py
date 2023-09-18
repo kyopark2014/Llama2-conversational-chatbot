@@ -275,13 +275,13 @@ system_prompt = """You are a helpful, respectful and honest assistant. Always an
 If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information."""
 
 Llama2_BASIC_PROMPT = """<s>[INST] <<SYS>>
-{system_promp}
+{system_prompt}
 <</SYS>>
 
 {question} [/INST]"""
 
 Llama2_HISTORY_PROMPT = """<s>[INST] <<SYS>>
-{system_promp}
+{system_prompt}
 <</SYS>>
 
 {history}
