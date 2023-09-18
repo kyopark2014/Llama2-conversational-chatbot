@@ -286,40 +286,28 @@ def get_answer_using_chat_history(query, chat_memory):
     else:  # 0 page
         chat_history = ""
     print('chat_history:\n ', chat_history)
-
-    print('\n\n\n')
-    history = chat_history
-    history = history[history.rfind('User: ')+1:len(history)]
+    
+    history = chat_history    
+    if history.rfind('User: '):
+        history = history[history.rfind('User: '):len(history)]
+        print('history (first):\n ', history)
 
     if history.rfind('User: '):
-        # First message
-        userMsg = history[0:history.rfind('Assistant: ')]
+        # First message        
+        userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
         print('userMsg: ', userMsg)
         history = history[history.rfind('Assistant: ')+11:len(history)]
-        assistantMsg = history[0:history.rfind('User: ')]
-        print('assistantMsg: ', assistantMsg)
-        history = history[history.rfind('User: ')+6:len(history)]
+
+        if history.rfind('User: '):
+            assistantMsg = history[0:history.rfind('User: ')]
+            print('assistantMsg: ', assistantMsg)
+            history = history[history.rfind('User: '):len(history)]
+        else:
+            assistantMsg = history[0:len(history)]
+            print('assistantMsg: ', assistantMsg)            
         
         msg_history = userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'
-
-        # last messages
-        if history.rfind('User: '):
-            userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
-            print('userMsg: ', userMsg)
-            history = history[history.rfind('Assistant: ')+11:len(history)]
-
-            if(history.rfind('User: ')):
-                assistantMsg = history[history.rfind('Assistant: ')+11:history.rfind('User: ')]
-                print('assistantMsg: ', assistantMsg)
-                history = history[history.rfind('User: ')+6:len(history)]
-            else:
-                assistantMsg = history[history.rfind('Assistant: ')+11:len(history)]
-                print('assistantMsg: ', assistantMsg)
-                # break
-                            
-            msg_history = userMsg + ' [/INST] '
-            msg_history = msg_history + assistantMsg + ' </s>'
 
         print('msg_history: ', msg_history)
 
