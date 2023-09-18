@@ -249,6 +249,32 @@ I live in Seoul. [/INST]
 Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with a rich history and culture. Is there anything specific you would like to know or discuss about Seoul or Korea in general? I'm here to help and provide information that is safe, respectful, and socially unbiased. Please feel free to ask! <s>
 <s>[INST] Tell me how to travel the places. [/INST]"""
 
+def get_history(history):
+    if history.rfind('User: '):
+        history = history[history.rfind('User: '):len(history)]
+        print('history (first):\n ', history)
+
+    if history.rfind('User: '):
+        # First message        
+        userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
+        print('userMsg: ', userMsg)
+        history = history[history.rfind('Assistant: ')+11:len(history)]
+
+        if history.rfind('User: '):
+            assistantMsg = history[0:history.rfind('User: ')]
+            print('assistantMsg: ', assistantMsg)
+            history = history[history.rfind('User: '):len(history)]
+        else:
+            assistantMsg = history[0:len(history)]
+            print('assistantMsg: ', assistantMsg)            
+        
+        msg_history = userMsg + ' [/INST] '
+        msg_history = msg_history + assistantMsg + ' </s>'
+
+        print('msg_history: ', msg_history)
+    return  msg_history
+
+
 def get_answer_using_chat_history(query, chat_memory):  
     condense_template = """<s>[INST] <<SYS>>
     Using the following conversation between the Assistant and User, answer friendly for the newest question. 
@@ -286,32 +312,10 @@ def get_answer_using_chat_history(query, chat_memory):
     else:  # 0 page
         chat_history = ""
     print('chat_history:\n ', chat_history)
-    
-    history = chat_history    
-    if history.rfind('User: '):
-        history = history[history.rfind('User: '):len(history)]
-        print('history (first):\n ', history)
 
-    if history.rfind('User: '):
-        # First message        
-        userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
-        print('userMsg: ', userMsg)
-        history = history[history.rfind('Assistant: ')+11:len(history)]
-
-        if history.rfind('User: '):
-            assistantMsg = history[0:history.rfind('User: ')]
-            print('assistantMsg: ', assistantMsg)
-            history = history[history.rfind('User: '):len(history)]
-        else:
-            assistantMsg = history[0:len(history)]
-            print('assistantMsg: ', assistantMsg)            
+    history = get_history(chat_history)
+    print('history: ', history)
         
-        msg_history = userMsg + ' [/INST] '
-        msg_history = msg_history + assistantMsg + ' </s>'
-
-        print('msg_history: ', msg_history)
-
-
     # make a question using chat history
     if pages >= 1:
         result = llm(CONDENSE_QUESTION_PROMPT.format(question=query, chat_history=chat_history))
