@@ -251,10 +251,6 @@ Great! I'm glad to hear that you live in Seoul! Seoul is a fascinating city with
 
 def get_history(history):
     if history.rfind('User: '):
-        history = history[history.rfind('User: '):len(history)]
-        print('history (first):\n ', history)
-
-    if history.rfind('User: '):
         # First message        
         userMsg = history[history.rfind('User: ')+6:history.rfind('Assistant: ')]
         print('userMsg: ', userMsg)
@@ -313,8 +309,12 @@ def get_answer_using_chat_history(query, chat_memory):
         chat_history = ""
     print('chat_history:\n ', chat_history)
 
-    history = get_history(chat_history)
-    print('history: ', history)
+    if chat_history.rfind('User: '):
+        chat_history = chat_history[chat_history.rfind('User: '):len(chat_history)]
+        print('history (first):\n ', chat_history)
+
+        history = get_history(chat_history)
+        print('history: ', history)
         
     # make a question using chat history
     if pages >= 1:
