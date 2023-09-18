@@ -254,7 +254,7 @@ def get_history(history):
 
     # first message
     if history.find('User: ')>=0:
-        userMsg = history[history.find('User: ')+6:history.rfind('Assistant: ')]
+        userMsg = history[history.find('User: ')+6:history.find('Assistant: ')]
         print('userMsg: ', userMsg)
         history = history[history.find('Assistant: ')+11:len(history)]
 
@@ -266,7 +266,7 @@ def get_history(history):
             assistantMsg = history[0:len(history)]
             print('assistantMsg: ', assistantMsg)            
         
-        msg_history = msg_history + userMsg + ' [/INST] '
+        msg_history = userMsg + ' [/INST] '
         msg_history = msg_history + assistantMsg + ' </s>'    
 
         print('first history: ', msg_history)
