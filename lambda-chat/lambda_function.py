@@ -243,14 +243,27 @@ def get_summary(texts):
         return summary
     
 def get_answer_using_chat_history(query, chat_memory):  
-    condense_template = """<s>[INST] <<SYS>>
-    Using the following conversation between the Assistant and User, answer friendly for the newest question. 
-
-    {chat_history}
+    # check korean
+    pattern_hangul = re.compile('[\u3131-\u3163\uac00-\ud7a3]+') 
+    word_kor = pattern_hangul.search(str(query))
+    print('word_kor: ', word_kor)
     
-    If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor. <</SYS>>
+    if word_kor:
+        condense_template = """\n\nUser: 다음은 User와 Assistant의 친근한 대화입니다. Assistant은 상황에 맞는 구체적인 세부 정보를 충분히 제공합니다. Assistant는 모르는 질문을 받으면 솔직히 모른다고 말합니다.
+    
+        {chat_history}
+        
+        User: {question}
 
-    {question} [/INST]"""
+        Assistant:"""
+    else:
+        condense_template = """Using the following conversation, answer friendly for the newest question. If you don't know the answer, just say that you don't know, don't try to make up an answer. You will be acting as a thoughtful advisor.
+        
+        {chat_history}
+        
+        User: {question}
+
+        Assistant:"""
 
     CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(condense_template)
         
