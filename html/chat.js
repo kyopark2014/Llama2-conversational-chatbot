@@ -68,9 +68,9 @@ calleeId.textContent = "AWS";
 
 index = 0;
 
-addNotifyMessage("Start chat with Amazon Bedrock");
+addNotifyMessage("Start chat with Llama 2");
 
-addReceivedMessage("Amazon Bedrock을 이용하여 주셔서 감사합니다. 원하는 질문을 입력하세요. 아래의 파일 버튼을 선택해 TXT, PDF, CSV 문서를 올리면 요약(Summarization)을 하실 수 있습니다.")
+addReceivedMessage("Wecome to Llama 2. Use the conversational chatbot and summarize documents, TXT, PDF, and CSV.")
 
 // get history
 function getAllowTime() {    
